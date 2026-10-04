@@ -16,7 +16,7 @@ def show_sources(video, sources, number):
     """Small time buttons under an answer. A click moves the player to that time."""
     if not sources:
         return
-    columns = st.columns([1] * len(sources) + [max(8 - len(sources), 1)])
+    columns = st.columns([1.4] * len(sources) + [1])
     for i, (column, source) in enumerate(zip(columns, sources)):
         column.button(
             f"\u25b6 {format_time(source['start'])}",

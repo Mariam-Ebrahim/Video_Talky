@@ -1,8 +1,10 @@
 import requests
 
 from core.chunker import chunk_transcript
+from core.llm_json import BadFormatError
 from core.rag import ChunkIndex
 from core.sections import make_sections
+from core.summary import make_summary
 from core.transcript import fetch_transcript, get_video_id
 
 
@@ -21,10 +23,11 @@ def fetch_title(video_id):
 
 
 def process_video(url, on_step=None, on_progress=None):
-    """Fetch, index and split one video. Raises TranscriptError or LLMError on failure.
+    """Fetch, index, split and summarize one video. Raises TranscriptError or LLMError on failure.
 
     on_step(text) is called before each stage; on_progress(done, total) during the sections stage.
-    Returns {"id", "url", "title", "language", "index", "sections"}.
+    Returns {"id", "url", "title", "language", "index", "sections", "summary"}.
+    "summary" is {"summary", "key_points"}, or None if the model could not write it.
     """
     step = on_step or (lambda text: None)
     video_id = get_video_id(url)
@@ -35,6 +38,11 @@ def process_video(url, on_step=None, on_progress=None):
     index = ChunkIndex(chunk_transcript(transcript))
     step("Writing the sections (about a minute)...")
     sections = make_sections(transcript, progress=on_progress)
+    step("Writing the summary...")
+    try:
+        summary = make_summary(sections, transcript["language"])
+    except BadFormatError:  # the video still opens, with an empty Summary tab
+        summary = None
 
     return {
         "id": video_id,
@@ -43,4 +51,5 @@ def process_video(url, on_step=None, on_progress=None):
         "language": transcript["language"],
         "index": index,
         "sections": sections,
+        "summary": summary,
     }
