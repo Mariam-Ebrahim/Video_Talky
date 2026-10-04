@@ -1,6 +1,7 @@
 import streamlit as st
 
 from core.transcript import format_time
+from ui.chat_tab import show_chat
 from ui.helpers import safe
 from ui.state import jump
 
@@ -35,7 +36,9 @@ def show_workspace(video):
         show_player(video)
         show_sections(video)
     with right:
-        names = ["Chat", "Summary", "Quiz", "Similar"]
-        for tab, name in zip(st.tabs(names), names):
+        chat_tab, summary_tab, quiz_tab, similar_tab = st.tabs(["Chat", "Summary", "Quiz", "Similar"])
+        with chat_tab:
+            show_chat(video)
+        for tab, name in ((summary_tab, "Summary"), (quiz_tab, "Quiz"), (similar_tab, "Similar")):
             with tab:
                 st.info(f"The {name} tab comes in a later step.")

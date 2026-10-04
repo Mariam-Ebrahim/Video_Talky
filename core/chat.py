@@ -70,4 +70,6 @@ def ask_video(question, index, history, k=4):
     history.append({"role": "user", "content": question})
     history.append({"role": "assistant", "content": answer})
     sources = [{"start": c["start"], "end": c["end"], "score": c["score"]} for c in excerpts]
+    if answer in REFUSALS.values():
+        sources = []  # the excerpts did not answer the question, so do not present them as sources
     return {"answer": answer, "sources": sources}
