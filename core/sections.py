@@ -1,5 +1,5 @@
 from langchain_classic.output_parsers import ResponseSchema
-
+from core.text_utils import has_foreign_script
 from core.llm_json import BadFormatError, ask_json
 
 SCHEMAS = [
@@ -45,6 +45,11 @@ def make_sections(transcript, progress=None):
         try:
             result = ask_json(system, text, SCHEMAS, max_new_tokens=200)
             title, summary = result["title"].strip(), result["summary"].strip()
+            if has_foreign_script(title + summary):  # the model switched language: retry once, stricter
+                result = ask_json(system + f"\n- Use only {language}. No other language.", text, SCHEMAS, max_new_tokens=200)
+                title, summary = result["title"].strip(), result["summary"].strip()
+            if has_foreign_script(title + summary):  # still wrong: fall back to a plain label
+                title, summary = f"Part {number}", ""
         except BadFormatError:  # one bad answer must not break the whole video
             title, summary = f"Part {number}", ""
         sections.append({

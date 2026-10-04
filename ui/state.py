@@ -19,6 +19,17 @@ def new_video():
     st.session_state.current = None
 
 
+def open_video(video_id):
+    st.session_state.current = video_id
+
+
+def jump(video_id, seconds):
+    """Move the player of a video to a time (used by the sections list and the chat sources)."""
+    video = st.session_state.videos[video_id]
+    video["start"] = int(seconds)
+    video["autoplay"] = True
+
+
 def process_and_open(url):
     """Process a link (unless already done) and open it. Returns True on success, False after showing an error."""
     state = st.session_state

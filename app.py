@@ -1,13 +1,17 @@
 import streamlit as st
 
-from core.transcript import format_time
 from ui.home import show_home
-from ui.state import current_video, init_state, new_video, process_and_open
+from ui.sidebar import show_sidebar
+from ui.state import current_video, init_state, process_and_open
 from ui.styles import apply_styles
+from ui.workspace import show_workspace
 
 st.set_page_config(page_title="VidTalk", page_icon="🎬", layout="wide")
 apply_styles()
 init_state()
+
+if st.session_state.videos:
+    show_sidebar()
 
 video = current_video()
 if video is None:
@@ -19,8 +23,4 @@ if video is None:
     elif process_and_open(link):
         st.rerun()
 else:
-    # TEMPORARY check view: it proves the pipeline works. Step 3 replaces it with the workspace.
-    st.button("Back to home", on_click=new_video)
-    st.subheader(video["title"])
-    for s in video["sections"]:
-        st.write(f"**{format_time(s['start'])}** {s['title']}: {s['summary']}")
+    show_workspace(video)

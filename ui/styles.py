@@ -5,25 +5,37 @@ ACCENT = "#0F766E"
 _CSS = f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
-  html, body, .stApp, .stMarkdown, button, input, textarea {{ font-family: 'DM Sans', sans-serif !important; }} 
+html, body, .stApp, .stMarkdown, button, input, textarea {{ font-family: 'DM Sans', sans-serif !important; }}
 .block-container {{ padding-top: 4.5rem; max-width: 1280px; }}
 [data-testid="stForm"] {{ border: 0; padding: 0; }}
 
-/* top bar */
-.topbar {{ display: flex; justify-content: space-between; align-items: center; padding: 0 0 8px; }}
+/* shared */
 .brand {{ font-weight: 700; font-size: 20px; color: {ACCENT}; }}
-.nav {{ display: flex; gap: 28px; font-size: 15px; color: #3B4A57; }}
+.label {{ font-size: 13px; color: #5A6875; font-weight: 700; letter-spacing: .04em; margin: 8px 0 6px; }}
 
-/* home hero */
+/* home */
+.topbar {{ display: flex; justify-content: space-between; align-items: center; padding: 0 0 8px; }}
+.nav {{ display: flex; gap: 28px; font-size: 15px; color: #3B4A57; }}
 .hero {{ text-align: center; padding-top: 4vh; }}
 .hero-title {{ font-size: 56px; line-height: 1.1; font-weight: 700; margin-bottom: 16px; }}
 .hero-text {{ font-size: 19px; color: #3B4A57; max-width: 620px; margin: 0 auto 28px; }}
-
-/* feature cards */
 .cards {{ display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 40px; }}
 .card {{ width: 200px; padding: 20px; background: #fff; border-radius: 14px; border: 1px solid #DDE4EA; }}
 .card b {{ display: block; margin-bottom: 6px; }}
 .card span {{ font-size: 14px; color: #3B4A57; }}
+
+/* workspace */
+.title {{ font-size: 22px; font-weight: 700; padding-bottom: 8px; }}
+
+/* sections list and sidebar videos: buttons that look like rows */
+[class*="st-key-sec_"] .stButton, [class*="st-key-secA_"] .stButton,
+[class*="st-key-vid_"] .stButton, [class*="st-key-active_"] .stButton {{ width: 100%; }}
+[class*="st-key-sec_"] button, [class*="st-key-secA_"] button,
+[class*="st-key-vid_"] button, [class*="st-key-active_"] button {{
+    width: 100%; justify-content: flex-start; text-align: left; border: 0; border-radius: 8px;
+    background: transparent; box-shadow: none; font-size: 14px; padding: 8px 12px; }}
+[class*="st-key-secA_"] button, [class*="st-key-active_"] button {{ background: #E3F1EF; font-weight: 500; }}
+[class*="st-key-sec_"] button:hover, [class*="st-key-vid_"] button:hover {{ background: #EEF3F6; }}
 </style>
 """
 
