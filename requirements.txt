@@ -1,0 +1,9 @@
+   streamlit>=1.46
+   youtube-transcript-api
+   sentence-transformers
+   faiss-cpu
+   langchain-core
+   langchain-classic
+   requests
+   python-dotenv
+   yt-dlp
