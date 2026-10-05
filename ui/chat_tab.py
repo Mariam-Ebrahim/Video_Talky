@@ -28,7 +28,7 @@ def show_sources(video, sources, number):
 
 def show_chat(video):
     """The Chat tab: the conversation of this video, and a box to ask the next question."""
-    box = st.container(height=520, border=False)  # the messages scroll inside this box
+    box = st.container(height=400, border=False)  # the messages scroll inside this box
     question = st.chat_input("Ask about this video...")
 
     with box:

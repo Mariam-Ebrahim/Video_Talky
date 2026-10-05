@@ -1,5 +1,6 @@
 import streamlit as st
 from core.transcript import format_time
+from ui.similar_tab import show_similar
 from ui.summary_tab import show_summary
 from ui.chat_tab import show_chat
 from ui.helpers import safe
@@ -41,6 +42,7 @@ def show_workspace(video):
             show_chat(video)
         with summary_tab:
             show_summary(video)
-        for tab, name in ((quiz_tab, "Quiz"), (similar_tab, "Similar")):
-            with tab:
-                st.info(f"The {name} tab comes in a later step.")
+        with quiz_tab:
+            st.info("The Quiz tab comes in a later step.")
+        with similar_tab:
+            show_similar(video)

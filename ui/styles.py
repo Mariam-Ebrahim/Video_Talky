@@ -41,7 +41,14 @@ html, body, .stApp, .stMarkdown, button, input, textarea {{ font-family: 'DM San
 .bubble.user {{ background: {ACCENT}; color: #fff; margin-left: auto; }}
 .bubble.assistant {{ background: #F1F4F6; color: #14202B; margin-right: auto; }}
 [class*="st-key-src_"] button {{ min-height: 0; padding: 2px 12px; border: 1px solid #E4B98C; border-radius: 99px;
-    background: #fff; color: #B45309; font-size: 13px; font-weight: 700; }}
+background: #fff; color: #B45309; font-size: 13px; font-weight: 700; }}
+/* similar videos */
+.similar {{ position: relative; background: #fff; border: 1px solid #DDE4EA; border-left: 4px solid {ACCENT};
+    border-radius: 12px; padding: 12px 16px; margin-bottom: 10px; }}
+.similar:hover {{ background: #E3F1EF; }}
+.stMarkdown a.similar-title {{ display: block; font-weight: 500; color: #14202B; text-decoration: none; }}
+.stMarkdown a.similar-title::after {{ content: ""; position: absolute; inset: 0; }}
+.similar-meta {{ font-size: 13px; color: #5A6875; margin-top: 2px; }}
 </style>
 """
 
