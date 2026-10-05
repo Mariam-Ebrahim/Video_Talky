@@ -26,7 +26,7 @@ def process_video(url, on_step=None, on_progress=None):
     """Fetch, index, split and summarize one video. Raises TranscriptError or LLMError on failure.
 
     on_step(text) is called before each stage; on_progress(done, total) during the sections stage.
-    Returns {"id", "url", "title", "language", "index", "sections", "summary"}.
+    Returns {"id", "url", "title", "language", "index", "snippets", "sections", "summary"}.
     "summary" is {"summary", "key_points"}, or None if the model could not write it.
     """
     step = on_step or (lambda text: None)
@@ -41,7 +41,7 @@ def process_video(url, on_step=None, on_progress=None):
     step("Writing the summary...")
     try:
         summary = make_summary(sections, transcript["language"])
-    except BadFormatError:  # the video still opens, with an empty Summary tab
+    except BadFormatError: 
         summary = None
 
     return {
@@ -50,6 +50,7 @@ def process_video(url, on_step=None, on_progress=None):
         "title": fetch_title(video_id),
         "language": transcript["language"],
         "index": index,
+        "snippets": transcript["snippets"], 
         "sections": sections,
         "summary": summary,
     }

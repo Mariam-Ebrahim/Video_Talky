@@ -3,6 +3,7 @@ from core.transcript import format_time
 from ui.similar_tab import show_similar
 from ui.summary_tab import show_summary
 from ui.chat_tab import show_chat
+from ui.quiz_tab import show_quiz
 from ui.helpers import safe
 from ui.state import jump
 
@@ -10,7 +11,7 @@ from ui.state import jump
 def show_player(video):
     try:
         st.video(video["url"], start_time=video["start"], autoplay=video["autoplay"])
-    except TypeError:  # older Streamlit versions have no autoplay
+    except TypeError:  
         st.video(video["url"], start_time=video["start"])
 
 
@@ -43,6 +44,6 @@ def show_workspace(video):
         with summary_tab:
             show_summary(video)
         with quiz_tab:
-            st.info("The Quiz tab comes in a later step.")
+            show_quiz(video)
         with similar_tab:
             show_similar(video)

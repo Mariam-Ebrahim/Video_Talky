@@ -12,7 +12,7 @@ FEATURES = [
 def show_home():
     """Draw the home page. Returns the link the user submitted, or None."""
     st.markdown(
-        '<div class="topbar"><div class="brand">VidTalk</div>'
+        '<div class="topbar"><div class="brand">Video Talky</div>'
         '<div class="nav"><span>My videos</span><span>How it works</span></div></div>',
         unsafe_allow_html=True,
     )

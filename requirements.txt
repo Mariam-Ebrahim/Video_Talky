@@ -7,3 +7,5 @@
    requests
    python-dotenv
    yt-dlp
+   fpdf2
+   uharfbuzz

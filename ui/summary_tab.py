@@ -1,5 +1,7 @@
 import streamlit as st
 
+from core.pdf_export import summary_blocks
+from ui.downloads import pdf_button
 from ui.helpers import safe
 
 
@@ -17,3 +19,4 @@ def show_summary(video):
         f'<div class="label">KEY POINTS</div><ul>{points}</ul></div>',
         unsafe_allow_html=True,
     )
+    pdf_button("Download summary (PDF)", summary_blocks(video), video, "summary", key=f"dl_summary_{video['id']}")

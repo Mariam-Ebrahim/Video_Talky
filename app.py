@@ -6,7 +6,7 @@ from ui.state import current_video, init_state, process_and_open
 from ui.styles import apply_styles
 from ui.workspace import show_workspace
 
-st.set_page_config(page_title="VidTalk", page_icon="🎬", layout="wide")
+st.set_page_config(page_title="Video Talky", page_icon="🎬", layout="wide")
 apply_styles()
 init_state()
 

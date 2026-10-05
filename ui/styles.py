@@ -42,6 +42,29 @@ html, body, .stApp, .stMarkdown, button, input, textarea {{ font-family: 'DM San
 .bubble.assistant {{ background: #F1F4F6; color: #14202B; margin-right: auto; }}
 [class*="st-key-src_"] button {{ min-height: 0; padding: 2px 12px; border: 1px solid #E4B98C; border-radius: 99px;
 background: #fff; color: #B45309; font-size: 13px; font-weight: 700; }}
+/* quiz */
+.question {{ font-size: 16px; font-weight: 500; margin: 18px 0 4px; }}
+.qnum {{ color: {ACCENT}; font-weight: 700; margin-inline-end: 8px; }}
+.score {{ text-align: center; background: #fff; border: 1px solid #DDE4EA; border-radius: 14px; padding: 18px; margin-bottom: 8px; }}
+.score-num {{ font-size: 44px; font-weight: 700; color: {ACCENT}; line-height: 1.1; }}
+.score-text {{ color: #3B4A57; margin-top: 4px; }}
+.chips {{ display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }}
+.chip {{ width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }}
+.chip.ok {{ background: #DCF5E8; color: #166534; }}
+.chip.bad {{ background: #FDE4E4; color: #B42318; }}
+.opt {{ padding: 7px 12px; border-radius: 8px; margin: 4px 0; font-size: 14px; border: 1px solid #DDE4EA; background: #fff; }}
+.opt.right {{ background: #DCF5E8; border-color: #86D3A8; }}
+.opt.wrong {{ background: #FDE4E4; border-color: #F1A7A7; }}
+.opt-tag {{ float: right; font-size: 12px; font-weight: 700; opacity: .75; }}
+.why {{ font-size: 14px; color: #3B4A57; margin: 6px 0 4px; }}
+.congrats {{ text-align: center; background: linear-gradient(135deg, #FFF7E0, #E3F1EF); border: 1px solid #F0D58A;
+    border-radius: 14px; padding: 16px; margin-bottom: 8px; }}
+.congrats-title {{ font-size: 22px; font-weight: 700; color: {ACCENT}; }}
+.badges {{ display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }}
+.badge {{ background: #fff; border: 1px solid #F0D58A; border-radius: 12px; padding: 10px 16px; min-width: 130px; }}
+.badge-icon {{ font-size: 30px; line-height: 1.2; }}
+.badge b {{ display: block; font-size: 14px; }}
+.badge span {{ font-size: 12px; color: #5A6875; }}
 /* similar videos */
 .similar {{ position: relative; background: #fff; border: 1px solid #DDE4EA; border-left: 4px solid {ACCENT};
     border-radius: 12px; padding: 12px 16px; margin-bottom: 10px; }}
