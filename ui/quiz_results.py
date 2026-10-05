@@ -5,7 +5,7 @@ from core.pdf_export import quiz_blocks
 from core.transcript import format_time
 from ui.downloads import pdf_button
 from ui.helpers import safe
-from ui.state import jump
+from ui.state import jump, start_generating
 
 
 def _message(score, total):
@@ -64,16 +64,28 @@ def _retake(quiz):
 
 
 def _show_actions(video, quiz, new_quiz):
-    """Two ways to keep practising: the same questions again, or a different set about the same video."""
+    """Two ways to keep practising: the same questions again, or a different set about the same video.
+
+    While a different quiz is being written both buttons are disabled, because a click on either one
+    would interrupt the run and waste the model calls already made.
+    """
+    flag = f"generating_{video['id']}"  # the same flag the Start quiz button uses
+    generating = st.session_state.get(flag, False)
+
     again, other = st.columns(2)
     with again:
         st.button("Retake this quiz", key=f"retake_{video['id']}_{quiz['round']}", on_click=_retake, args=(quiz,),
-                  use_container_width=True)
+                  use_container_width=True, disabled=generating)
     with other:
-        if st.button("Try a different quiz", key=f"newquiz_{video['id']}_{quiz['round']}", type="primary",
-                     use_container_width=True):
-            if new_quiz():
-                st.rerun()
+        st.button("Try a different quiz", key=f"newquiz_{video['id']}_{quiz['round']}", type="primary",
+                  use_container_width=True, disabled=generating, on_click=start_generating, args=(flag,))
+
+    if generating:
+        try:
+            new_quiz()  # shows its own progress bar; a failure is saved for the next run by the quiz tab
+        finally:
+            st.session_state[flag] = False  # always release the buttons
+        st.rerun()  # success: the new quiz. Failure: enabled buttons and the saved error.
 
 
 def _review_html(number, question, picked):
@@ -111,7 +123,8 @@ def _show_review(video, quiz, result):
 def show_results(video, quiz, new_quiz):
     """The screen after submitting: the grade, a celebration for a full score, the actions, then the review.
 
-    new_quiz: a function that writes a different quiz and returns True on success (it shows its own errors).
+    new_quiz: a function that writes a different quiz and returns True on success. On failure it saves
+    its error message in session_state instead of showing it (the quiz tab shows it on the next run).
     """
     result = grade(quiz["questions"], quiz["answers"])
     if len(quiz["scores"]) < quiz["round"]:  # first time this attempt is shown: remember its score

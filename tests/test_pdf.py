@@ -52,4 +52,4 @@ else:
     assert english.startswith(b"%PDF") and arabic.startswith(b"%PDF")
     open("check_english.pdf", "wb").write(english)
     open("check_arabic.pdf", "wb").write(arabic)
-    print("wrote check_english.pdf and check_arabic.pdf: open them. Arabic letters must be joined and read right to left.")
+    print("wrote check_english.pdf and check_arabic.pdf: open them. Arabic letters must be joined and read right to left.")l

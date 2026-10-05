@@ -9,7 +9,7 @@ SCHEMAS = [
     ResponseSchema(name="summary", description="3 to 4 sentences saying what the whole video is about"),
     ResponseSchema(
         name="key_points",
-        description="a JSON list of 5 to 7 short strings, one main point each, at most 20 words each",
+        description="a JSON list of 5 to 10 short strings, one main point each, at most 20 words each",
     ),
 ]
 
@@ -32,7 +32,7 @@ def _as_list(value):
     return [item for item in cleaned if item]
 
 
-def make_summary(sections, language, max_points=7):
+def make_summary(sections, language, max_points=10):
     """Return {"summary": str, "key_points": [str, ...]} for a whole video.
 
     This is the reduce step of a map-reduce: make_sections already wrote a short note for every part
@@ -41,7 +41,7 @@ def make_summary(sections, language, max_points=7):
     """
     notes = "\n".join(f"{s['title']}: {s['summary']}" for s in sections)
     system = SYSTEM_PROMPT.format(language=LANGUAGE_NAMES.get(language, "the language of the notes"))
-    result = ask_json(system, notes, SCHEMAS, max_new_tokens=500)
+    result = ask_json(system, notes, SCHEMAS, max_new_tokens=800)
 
     summary = str(result["summary"]).strip()
     points = _as_list(result["key_points"])[:max_points]

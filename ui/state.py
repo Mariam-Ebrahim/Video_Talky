@@ -54,3 +54,6 @@ def process_and_open(url):
         st.error(f"Something went wrong: {exc}")
         return False
     return True
+
+def start_generating(flag):
+    st.session_state[flag] = True
