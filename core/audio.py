@@ -1,8 +1,6 @@
 import tempfile
 from pathlib import Path
 
-import yt_dlp
-
 from core.transcript import TranscriptError
 
 MAX_MINUTES = 180 
@@ -10,6 +8,8 @@ MAX_MINUTES = 180
 
 def download_audio(video_id):
     """Download only the audio of a YouTube video. Returns the file path."""
+    import yt_dlp  # slow import: done here, not at startup
+
     url = f"https://www.youtube.com/watch?v={video_id}"
     folder = Path(tempfile.mkdtemp())
     options = {

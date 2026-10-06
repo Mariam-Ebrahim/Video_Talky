@@ -1,5 +1,5 @@
 import requests
-
+from core.timing import timed
 from core.audio import download_audio
 from core.llm_client import LLMError, _settings
 from core.transcript import TranscriptError
@@ -8,17 +8,18 @@ from core.transcript import TranscriptError
 def transcribe_video(video_id):
     """Download the audio, send it to the Kaggle Whisper server, and return a transcript
     in the same format as fetch_transcript()."""
-    audio_path = download_audio(video_id)
+    with timed("download audio"):
+        audio_path = download_audio(video_id)
     url, token = _settings(None, None)
-
     try:
-        with open(audio_path, "rb") as audio:
-            reply = requests.post(
-                f"{url}/transcribe",
-                headers={"Authorization": f"Bearer {token}", "ngrok-skip-browser-warning": "true"},
-                files={"file": audio},
-                timeout=1800,  
-            )
+        with timed("upload + whisper"):
+            with open(audio_path, "rb") as audio:
+                reply = requests.post(
+                    f"{url}/transcribe",
+                    headers={"Authorization": f"Bearer {token}", "ngrok-skip-browser-warning": "true"},
+                    files={"file": audio},
+                    timeout=1800,  
+                )
     except requests.RequestException as exc:
         raise LLMError("Cannot reach the model server. Is the Kaggle notebook running?") from exc
     finally:

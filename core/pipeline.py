@@ -6,7 +6,7 @@ from core.llm_json import BadFormatError
 from core.rag import ChunkIndex
 from core.sections import make_sections
 from core.summary import make_summary
-
+from core.timing import timed
 
 
 def fetch_title(video_id):
@@ -35,19 +35,24 @@ def process_video(url, on_step=None, on_progress=None):
 
     step("Fetching the transcript...")
     try:
-        transcript = fetch_transcript(video_id)
+        with timed("fetch transcript"):
+            transcript = fetch_transcript(video_id)
     except NoCaptionsError:
         step("No captions found. Transcribing the audio (this can take a few minutes)...")
-        transcript = transcribe_video(video_id)
+        with timed("whisper total"):
+            transcript = transcribe_video(video_id)
     step("Building the search index...")
-    index = ChunkIndex(chunk_transcript(transcript))
+    with timed("build index"):
+        index = ChunkIndex(chunk_transcript(transcript))
     step("Writing the sections (about a minute)...")
-    sections = make_sections(transcript, progress=on_progress)
+    with timed("make sections"):
+        sections = make_sections(transcript, progress=on_progress)
     step("Writing the summary...")
-    try:
-        summary = make_summary(sections, transcript["language"])
-    except BadFormatError: 
-        summary = None
+    with timed("make summary"):
+        try:
+            summary = make_summary(sections, transcript["language"])
+        except BadFormatError:
+            summary = None
 
     return {
         "id": video_id,

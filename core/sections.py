@@ -1,6 +1,6 @@
 from langchain_classic.output_parsers import ResponseSchema
 
-from core.llm_json import BadFormatError, ask_json
+from core.llm_json import ask_json_batch
 from core.text_utils import wrong_script
 
 SCHEMAS = [
@@ -32,19 +32,26 @@ def split_blocks(snippets, duration):
     return [blocks[k] for k in sorted(blocks)]
 
 
-def label_block(system, text, code, language):
-    """Ask the model for a title and a summary of one block.
+def label_blocks(system, texts, code, language):
+    """Ask the model for a title and a summary of every block, all at the same time.
 
     Small models sometimes switch language in the middle of an answer (Japanese, or Arabic in an English video).
-    If that happens, ask once more with a stricter rule. Raises BadFormatError if the answer is still wrong.
+    The blocks with a wrong answer are written again, once, with a stricter rule.
+    Returns a list of (title, summary), or None for a block that still failed.
     """
+    labels = [None] * len(texts)
     for strict in (False, True):
+        waiting = [i for i in range(len(texts)) if labels[i] is None]
+        if not waiting:
+            break
         prompt = system + (f"\n- Use only {language}. Do not use any other language." if strict else "")
-        result = ask_json(prompt, text, SCHEMAS, max_new_tokens=200)
-        title, summary = result["title"].strip(), result["summary"].strip()
-        if not wrong_script(title + summary, code):
-            return title, summary
-    raise BadFormatError("The model used the wrong language.")
+        results = ask_json_batch(prompt, [texts[i] for i in waiting], SCHEMAS, max_new_tokens=200)
+        for i, result in zip(waiting, results):
+            if result:
+                title, summary = result["title"].strip(), result["summary"].strip()
+                if not wrong_script(title + summary, code):
+                    labels[i] = (title, summary)
+    return labels
 
 
 def make_sections(transcript, progress=None):
@@ -56,19 +63,18 @@ def make_sections(transcript, progress=None):
     code = transcript["language"]
     language = LANGUAGE_NAMES.get(code, "the language of the transcript")
     system = SYSTEM_PROMPT.format(language=language)
+    texts = [" ".join(s["text"] for s in block) for block in blocks]
+    labels = label_blocks(system, texts, code, language)
+
     sections = []
-    for number, block in enumerate(blocks, start=1):
-        text = " ".join(s["text"] for s in block)
-        try:
-            title, summary = label_block(system, text, code, language)
-        except BadFormatError:  # one bad answer must not break the whole video
-            title, summary = f"Part {number}", ""
+    for number, (block, label) in enumerate(zip(blocks, labels), start=1):
+        title, summary = label or (f"Part {number}", "")  # one bad answer must not break the whole video
         sections.append({
             "start": block[0]["start"],
             "end": block[-1]["start"] + block[-1]["duration"],
             "title": title,
             "summary": summary,
         })
-        if progress:
-            progress(number, len(blocks))
+    if progress:
+        progress(len(blocks), len(blocks))
     return sections

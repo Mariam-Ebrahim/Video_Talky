@@ -1,9 +1,9 @@
 import random
 
 from langchain_classic.output_parsers import ResponseSchema
-
+from core.timing import timed
 from core.llm_client import ask
-from core.llm_json import BadFormatError, ask_json
+from core.llm_json import ask_json_batch
 from core.sections import LANGUAGE_NAMES
 from core.text_utils import wrong_script
 
@@ -67,22 +67,28 @@ def _shuffle(question):
     question["answer"] = question["options"].index(correct)
 
 
-def _write_question(system, text, avoid, code, name):
-    """One question about a piece of transcript, or None. If the model switches language, ask once more."""
+def _user_prompt(text, avoid, position, total):
+    """The user message for one question. position/total: this is question `position` of `total` about the same text."""
     user = f"Transcript:\n{text}"
+    if total > 1:
+        user += f"\n\nYou will write {total} different questions about this text. Write question {position} and choose a detail that the other questions are unlikely to use."
     if avoid:
         user += "\n\nDo not ask about the same thing as these questions:\n" + "\n".join(f"- {q}" for q in avoid)
-    for strict in (False, True):
-        prompt = system + (f"\n- Use only {name}. Do not use any other language." if strict else "")
-        try:
-            result = ask_json(prompt, user, SCHEMAS, max_new_tokens=300)
-        except BadFormatError:
-            continue
-        question = _question_from(result)
+    return user
+
+
+def _write_questions(system, users, code, name):
+    """One question for each text in `users`, all written at the same time. Returns a list (None = failed)."""
+    results = ask_json_batch(system, users, SCHEMAS, max_new_tokens=300)
+    questions = []
+    for result in results:
+        question = _question_from(result) if result else None
         if question and not wrong_script(" ".join([question["question"], *question["options"], question["explanation"]]), code):
             _shuffle(question)
-            return question
-    return None
+            questions.append(question)
+        else:
+            questions.append(None)
+    return questions
 
 
 def make_quiz(sections, snippets, language, count=QUESTION_COUNT, progress=None, avoid=None):
@@ -91,6 +97,8 @@ def make_quiz(sections, snippets, language, count=QUESTION_COUNT, progress=None,
     The questions follow the video: they are spread over its sections, and when there are fewer sections
     than questions, a section gets a second question about a different detail.
     "answer" is the position (0 to 3) of the correct option, "start" is the time (seconds) of its section.
+    All questions are written in ONE batch (the GPU does them at the same time). The ones that fail
+    (wrong format, wrong language, repeated question) are written again in a second, stricter batch.
     progress is an optional function called as progress(done, total).
     avoid is an optional list of earlier question texts: the model is told not to ask about the same things,
     so "another quiz" is different from the one before.
@@ -100,18 +108,33 @@ def make_quiz(sections, snippets, language, count=QUESTION_COUNT, progress=None,
     name = LANGUAGE_NAMES.get(language, "the language of the transcript")
     system = SYSTEM_PROMPT.format(language=name)
 
-    quiz, asked = [], {}  # asked: section number -> questions already written about it
-    for number in range(count):
-        index = number * len(sections) // count
+    # 1. plan: which section does each question come from?
+    indexes = [number * len(sections) // count for number in range(count)]
+    texts = []
+    for index in indexes:
         section = sections[index]
-        text = " ".join(s["text"] for s in snippets if section["start"] <= s["start"] < section["end"])
-        # earlier quizzes' questions are only passed to the model for this section's turn; they are
-        # not copied into `asked`, so they never count as questions of this quiz
-        question = _write_question(system, text, [*(avoid or []), *asked.setdefault(index, [])], language, name)
-        if question:
-            asked[index].append(question["question"])
-            question["start"] = section["start"]
-            quiz.append(question)
-        if progress:
-            progress(number + 1, count)
-    return quiz
+        texts.append(" ".join(s["text"] for s in snippets if section["start"] <= s["start"] < section["end"]))
+    totals = {i: indexes.count(i) for i in set(indexes)}
+    seen_in_section = {}
+    prompts = []
+    for index, text in zip(indexes, texts):
+        seen_in_section[index] = seen_in_section.get(index, 0) + 1
+        prompts.append(_user_prompt(text, avoid or [], seen_in_section[index], totals[index]))
+
+    # 2. write all questions at once; if some fail or repeat, write only those again (stricter prompt)
+    quiz = [None] * count
+    for strict in (False, True):
+        waiting = [i for i in range(count) if quiz[i] is None]
+        if not waiting:
+            break
+        prompt = system + (f"\n- Use only {name}. Do not use any other language." if strict else "")
+        with timed(f"quiz batch (strict={strict}, {len(waiting)} questions)"):
+            answers = _write_questions(prompt, [prompts[i] for i in waiting], language, name)                
+            for i, question in zip(waiting, answers):
+                taken = {q["question"].strip().lower() for q in quiz if q}
+                if question and question["question"].strip().lower() not in taken:
+                    question["start"] = sections[indexes[i]]["start"]
+                    quiz[i] = question
+            if progress:
+                progress(sum(q is not None for q in quiz), count)
+    return [q for q in quiz if q]

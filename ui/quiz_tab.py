@@ -32,14 +32,13 @@ def _start_quiz(video, seen=()):
         if not seen and not is_educational(video["title"], video["sections"]):
             video["quiz"] = {"educational": False}
             return True
-        bar.progress(0.0, text="Writing the questions (1 to 3 minutes)...")
+        bar.progress(0.0, text="Writing all 10 questions (about 50 seconds)...")
         questions = make_quiz(
             video["sections"],
             video["snippets"],
             video["language"],
-            progress=lambda done, total: bar.progress(done / total, text=f"Writing question {done} of {total}..."),
             avoid=list(seen)[-AVOID_LIMIT:],
-        )
+)
     except LLMError as exc:  # its message is written for the user
         st.session_state[_error_key(video)] = str(exc)
         return False

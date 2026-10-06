@@ -18,20 +18,23 @@ import core.quiz as quiz
 prompts = []
 
 
-def fake_ask_json(prompt, user, schemas, max_new_tokens):
-    prompts.append(user)
-    return {"question": f"Q{len(prompts)}?", "option_a": "a", "option_b": "b", "option_c": "c",
-            "option_d": "d", "answer": "A", "explanation": "x"}
+def fake_ask_json_batch(system, users, schemas, max_new_tokens):
+    results = []
+    for user in users:
+        prompts.append(user)
+        results.append({"question": f"Q{len(prompts)}?", "option_a": "a", "option_b": "b", "option_c": "c",
+                        "option_d": "d", "answer": "A", "explanation": "x"})
+    return results
 
 
-quiz.ask_json = fake_ask_json
+quiz.ask_json_batch = fake_ask_json_batch
 SECTIONS = [{"start": 0, "end": 10, "title": "t"}, {"start": 10, "end": 20, "title": "t"}]
 SNIPPETS = [{"start": 1, "text": "hello"}, {"start": 11, "text": "world"}]
 
 result = quiz.make_quiz(SECTIONS, SNIPPETS, "en", count=4, avoid=["OLD1?", "OLD2?"])
 assert len(result) == 4
 assert all("OLD1?" in p and "OLD2?" in p for p in prompts), "earlier quizzes' questions must reach every prompt"
-assert "Q1?" in prompts[1] and "Q1?" not in prompts[2], "same-section questions are avoided, other sections' are not"
+assert "Write question 1 " in prompts[0] and "Write question 2 " in prompts[1], "same-section questions get different focus hints"
 
 prompts.clear()
 quiz.make_quiz(SECTIONS, SNIPPETS, "en", count=2)

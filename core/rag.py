@@ -1,6 +1,3 @@
-import faiss
-from sentence_transformers import SentenceTransformer
-
 from core.text_utils import normalize_arabic
 
 MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"  # understands Arabic and English
@@ -11,6 +8,8 @@ def _get_model():
     """Load the embedding model once, the first time it is needed."""
     global _model
     if _model is None:
+        from sentence_transformers import SentenceTransformer  # slow import: done here, not at startup
+
         _model = SentenceTransformer(MODEL_NAME)
     return _model
 
@@ -28,9 +27,11 @@ class ChunkIndex:
     def __init__(self, chunks):
         if not chunks:
             raise ValueError("Cannot build an index without chunks.")
-        self.chunks = chunks  # the original chunks: this is what we show to the user
+        import faiss  # imported here so the app starts fast
+
+        self.chunks = chunks  
         vectors = embed([c["text"] for c in chunks])
-        self.index = faiss.IndexFlatIP(vectors.shape[1])  # inner product on unit vectors = cosine similarity
+        self.index = faiss.IndexFlatIP(vectors.shape[1])  
         self.index.add(vectors)
 
     def search(self, query, k=4):

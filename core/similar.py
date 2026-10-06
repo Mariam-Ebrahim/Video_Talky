@@ -1,7 +1,6 @@
 import re
 
 from langchain_classic.output_parsers import ResponseSchema
-from yt_dlp import YoutubeDL
 
 from core.llm_json import BadFormatError, ask_json
 from core.sections import LANGUAGE_NAMES
@@ -41,6 +40,8 @@ def make_keywords(title, sections, language, count=3):
 
 def search_videos(query, count=3):
     """Search YouTube without downloading anything. Returns [{"id", "title", "url", "channel", "duration"}]."""
+    from yt_dlp import YoutubeDL  # slow import: done here, not at startup
+
     options = {"quiet": True, "no_warnings": True, "extract_flat": True, "skip_download": True}
     try:
         with YoutubeDL(options) as ydl:

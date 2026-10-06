@@ -46,7 +46,7 @@ model = AutoModelForCausalLM.from_pretrained(
 asr = pipeline(
     "automatic-speech-recognition",
     model="openai/whisper-medium",
-    torch_dtype=torch.float16,
+    dtype=torch.float16,
     device="cuda:0",
 )
 
@@ -101,7 +101,49 @@ def generate(request: GenerateRequest, authorization: str = Header(default="")):
 
     new_tokens = output[0][inputs["input_ids"].shape[1]:]
     return {"response": tokenizer.decode(new_tokens, skip_special_tokens=True)}
+    
+class BatchRequest(BaseModel):
+    conversations: list[list[Message]] = Field(min_length=1, max_length=10)
+    max_new_tokens: int = Field(600, ge=1, le=2048)
+    temperature: float = Field(0.0, ge=0.0, le=1.5)
 
+
+@app.post("/generate_batch")
+def generate_batch(request: BatchRequest, authorization: str = Header(default="")):
+    if authorization != f"Bearer {API_KEY}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    texts = [
+        tokenizer.apply_chat_template(
+            [m.model_dump() for m in conv], add_generation_prompt=True, tokenize=False
+        )
+        for conv in request.conversations
+    ]
+    tokenizer.padding_side = "left"  # decoder models must pad on the left when batching
+    inputs = tokenizer(texts, return_tensors="pt", padding=True).to(model.device)
+
+    gen_kwargs = {"max_new_tokens": request.max_new_tokens, "pad_token_id": tokenizer.eos_token_id}
+    if request.temperature > 0:
+        gen_kwargs.update(do_sample=True, temperature=request.temperature, top_p=0.9)
+    else:
+        gen_kwargs.update(do_sample=False)
+
+    try:
+        with lock:
+            with torch.inference_mode():
+                output = model.generate(**inputs, **gen_kwargs)
+    except torch.OutOfMemoryError:
+        torch.cuda.empty_cache()
+        raise HTTPException(status_code=503, detail="GPU out of memory, input too long")
+    finally:
+        torch.cuda.empty_cache()
+
+    prompt_len = inputs["input_ids"].shape[1]
+    return {
+        "responses": [
+            tokenizer.decode(row[prompt_len:], skip_special_tokens=True) for row in output
+        ]
+    }
 
 @app.post("/transcribe")
 def transcribe(file: UploadFile = File(...), authorization: str = Header(default="")):
@@ -117,7 +159,7 @@ def transcribe(file: UploadFile = File(...), authorization: str = Header(default
             result = asr(
                 tmp.name,
                 chunk_length_s=30,
-                batch_size=2,  # smaller batch = less GPU memory
+                batch_size=4,  # smaller batch = less GPU memory
                 return_timestamps=True,
                 generate_kwargs={"num_beams": 1},  # greedy decoding, no beam-search memory blowup
             )
