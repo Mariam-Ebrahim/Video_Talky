@@ -1,11 +1,12 @@
 import requests
-
+from core.speech import transcribe_video
+from core.transcript import NoCaptionsError, fetch_transcript, get_video_id
 from core.chunker import chunk_transcript
 from core.llm_json import BadFormatError
 from core.rag import ChunkIndex
 from core.sections import make_sections
 from core.summary import make_summary
-from core.transcript import fetch_transcript, get_video_id
+
 
 
 def fetch_title(video_id):
@@ -33,7 +34,11 @@ def process_video(url, on_step=None, on_progress=None):
     video_id = get_video_id(url)
 
     step("Fetching the transcript...")
-    transcript = fetch_transcript(video_id)
+    try:
+        transcript = fetch_transcript(video_id)
+    except NoCaptionsError:
+        step("No captions found. Transcribing the audio (this can take a few minutes)...")
+        transcript = transcribe_video(video_id)
     step("Building the search index...")
     index = ChunkIndex(chunk_transcript(transcript))
     step("Writing the sections (about a minute)...")
