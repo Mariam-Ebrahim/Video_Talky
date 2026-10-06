@@ -6,7 +6,7 @@ from ui.state import delete_video, new_video, open_video
 def show_sidebar():
     """The list of processed videos, with a button to start a new one."""
     with st.sidebar:
-        st.markdown('<div class="brand">VidTalk</div>', unsafe_allow_html=True)
+        st.markdown('<div class="brand">Video Talky</div>', unsafe_allow_html=True)
         st.button("+ New video", type="primary", use_container_width=True, on_click=new_video)
         st.markdown('<div class="label">YOUR VIDEOS</div>', unsafe_allow_html=True)
         for video_id, video in st.session_state.videos.items():
