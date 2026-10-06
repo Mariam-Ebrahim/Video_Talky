@@ -164,7 +164,9 @@ Open http://localhost:8501.
 # 📸 Demo
 
 
-https://github.com/user-attachments/assets/fe882e8e-ec78-4034-b974-a6d73c4b63a4
+
+https://github.com/user-attachments/assets/d37ea0d2-34f6-4a8c-a0c1-2b05b5ea5d58
+
 
 
 ![Video Talky screenshot](docs/screenshot.png)
