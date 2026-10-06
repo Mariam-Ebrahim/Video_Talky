@@ -22,6 +22,11 @@ def new_video():
 def open_video(video_id):
     st.session_state.current = video_id
 
+def delete_video(video_id):
+    """Remove a video from the sidebar. If it is the open one, go back to the home page."""
+    st.session_state.videos.pop(video_id, None)
+    if st.session_state.current == video_id:
+        st.session_state.current = None
 
 def jump(video_id, seconds):
     """Move the player of a video to a time (used by the sections list and the chat sources)."""
