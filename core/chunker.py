@@ -1,4 +1,4 @@
-def make_chunks(snippets, window=30, stride=20):
+def make_chunks(snippets, window, stride):
     """Group caption snippets into overlapping time windows.
 
     snippets: [{"text", "start", "duration"}, ...] sorted by start time (seconds)
@@ -44,5 +44,5 @@ SETTINGS = {"ar": (30, 20), "en": (20, 12)}
 
 def chunk_transcript(transcript):
     """Chunk a transcript dictionary using the settings of its language."""
-    window, stride = SETTINGS.get(transcript["language"], (20, 12))
+    window, stride = SETTINGS.get(transcript["language"], SETTINGS["en"])
     return make_chunks(transcript["snippets"], window, stride)

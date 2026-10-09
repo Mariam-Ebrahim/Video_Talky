@@ -1,9 +1,16 @@
 import re
 
+# --- searching: make different spellings of one Arabic word identical ---
 _MARKS = re.compile("[\u064B-\u0652\u0640]")  # diacritics (harakat) and tatweel (the stretching letter)
 _LETTERS = str.maketrans({"أ": "ا", "إ": "ا", "آ": "ا", "ة": "ه", "ى": "ي"})
 
+# --- checking the model's output: is it written in the video's language? ---
+_ARABIC = re.compile("[\u0621-\u064A]")  # Arabic letters only (no digits, marks or punctuation)
+_LATIN = re.compile("[A-Za-z]")
+_FOREIGN = re.compile("[\u0400-\u04FF\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF]")  # Cyrillic, Japanese, Chinese, Korean
+ARABIC_SHARE = 0.5  # in an Arabic video, at least this share of the letters must be Arabic
 
+#makes different spellings of an Arabic word equal, so search works
 def normalize_arabic(text):
     """Make different spellings of the same Arabic word identical, for searching only.
 
@@ -11,16 +18,21 @@ def normalize_arabic(text):
     """
     return _MARKS.sub("", text).translate(_LETTERS)
 
-def has_foreign_script(text):
-    """True if the text has letters outside Latin and Arabic, e.g. Japanese or Chinese characters."""
-    return bool(re.search(r"[^\u0000-\u024F\u0600-\u06FF\u2000-\u206F\s]", text))
-
+#checks that the model’s text is in the right language.
 def wrong_script(text, language):
-    """True if the text uses a script that does not belong to the video's language.
+    """True if the text is written in a script that does not belong to the video's language.
 
-    Japanese or Chinese letters are wrong in every video. Arabic letters are also wrong in an English video.
-    Latin letters are fine in an Arabic video (SSD, RAM), so they are not checked there.
+    Cyrillic, Japanese, Chinese and Korean are wrong in every video.
+    English video: any Arabic letter is wrong.
+    Arabic video: Arabic must be most of the letters. A few English terms (SSD, RAM) are fine.
+    Symbols and emoji (→, ≤, €) are never checked.
     """
-    if has_foreign_script(text):
+    if _FOREIGN.search(text):
         return True
-    return language == "en" and bool(re.search(r"[\u0600-\u06FF]", text))
+    arabic = len(_ARABIC.findall(text))
+    if language == "en":
+        return arabic > 0
+    if language == "ar":
+        letters = arabic + len(_LATIN.findall(text))
+        return letters > 0 and arabic / letters < ARABIC_SHARE
+    return False

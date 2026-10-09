@@ -66,29 +66,16 @@ def _friendly_errors():
         raise TranscriptError("Could not get the captions for this video.") from exc
 
 
-def list_tracks(video_id):
-    """Available caption tracks, best first: [{"language": "en", "is_generated": False}, ...]."""
-    with _friendly_errors():
-        tracks = _sorted_tracks(YouTubeTranscriptApi().list(video_id))
-    items = [(_language(t), t.is_generated) for t in tracks]
-    return [{"language": lang, "is_generated": gen} for lang, gen in dict.fromkeys(items)]
 
-
-def fetch_transcript(video_id, language=None):
-    """Fetch captions. Pass language="ar" or "en" to choose a track, or None for the best one.
+def fetch_transcript(video_id):
+    """Fetch the captions of the best Arabic or English track.
 
     Returns {"video_id", "language", "is_generated", "source", "duration", "snippets"}
     where each snippet is {"text", "start", "duration"} in seconds.
     """
     with _friendly_errors():
-        tracks = _sorted_tracks(YouTubeTranscriptApi().list(video_id))
-        if language:
-            tracks = [t for t in tracks if _language(t) == language]
-        if not tracks:
-            raise TranscriptError(f"This video has no captions in '{language}'.")
-        track = tracks[0]
+        track = _sorted_tracks(YouTubeTranscriptApi().list(video_id))[0]
         fetched = track.fetch()
-
     snippets = [
         {"text": " ".join(s.text.split()), "start": float(s.start), "duration": float(s.duration)}
         for s in fetched.snippets

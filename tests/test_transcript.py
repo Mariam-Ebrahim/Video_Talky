@@ -1,4 +1,4 @@
-from core.transcript import (get_video_id, list_tracks, fetch_transcript, format_time, TranscriptError)
+from core.transcript import get_video_id, fetch_transcript, format_time, TranscriptError
 links = [
     "https://www.youtube.com/watch?v=xnyFYiK2rSY&t=2s",
     "https://www.youtube.com/watch?v=mvZHDpCHphk",
@@ -9,7 +9,6 @@ links = [
 for link in links:
     try:
         video_id = get_video_id(link)
-        print(video_id, list_tracks(video_id))
         t = fetch_transcript(video_id)
         print(t["language"], "generated:", t["is_generated"], "snippets:", len(t["snippets"]),
               "length:", format_time(t["duration"]))

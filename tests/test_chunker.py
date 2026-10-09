@@ -3,7 +3,7 @@ from core.chunker import make_chunks
 
 vid = get_video_id("https://www.youtube.com/watch?v=fGVfqA_Iv6s")
 t = fetch_transcript(vid)
-chunks = make_chunks(t["snippets"])
+chunks = make_chunks(t["snippets"], 20, 12)
 
 words = [len(c["text"].split()) for c in chunks]
 print("chunks:", len(chunks))

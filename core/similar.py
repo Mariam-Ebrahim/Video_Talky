@@ -61,7 +61,7 @@ def search_videos(query, count=3):
     ]
 
 
-def find_similar(title, sections, language, video_id, per_keyword=3, limit=6):
+def find_similar(title, sections, language, video_id, per_keyword=2, limit=6):
     """Return {"keywords": [...], "videos": [...]}: videos on the same topic, without this video itself."""
     try:
         keywords = make_keywords(title, sections, language)
