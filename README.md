@@ -163,7 +163,13 @@ Open http://localhost:8501.
 
 # 📸 Demo
 
-![VidTalk screenshot](docs/screenshot.png)
+
+
+https://github.com/user-attachments/assets/d37ea0d2-34f6-4a8c-a0c1-2b05b5ea5d58
+
+
+
+![Video Talky screenshot](docs/screenshot.png)
 
 ---
 
